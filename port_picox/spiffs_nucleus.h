@@ -370,10 +370,8 @@ typedef struct {
   uint32_t last_access;
   union {
     // type read cache
-    struct {
       // read cache page index
       spiffs_page_ix pix;
-    };
 #if SPIFFS_CACHE_WR
     // type write cache
     struct {
@@ -383,9 +381,9 @@ typedef struct {
       uint32_t offset;
       // size of cache page
       uint16_t size;
-    };
+    } u;
 #endif
-  };
+  } s;
 } spiffs_cache_page;
 
 // cache struct
