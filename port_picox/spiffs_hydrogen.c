@@ -22,6 +22,7 @@ static int32_t spiffs_fflush_cache(spiffs *fs, spiffs_file fh);
 
 #if SPIFFS_BUFFER_HELP
 uint32_t SPIFFS_buffer_bytes_for_filedescs(spiffs *fs, uint32_t num_descs) {
+    X_UNUSED(fs);
   return num_descs * sizeof(spiffs_fd);
 }
 #if SPIFFS_CACHE
