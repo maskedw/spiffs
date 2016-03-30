@@ -19,7 +19,7 @@ static spiffs_cache_page *spiffs_cache_page_get(spiffs *fs, spiffs_page_ix pix) 
     spiffs_cache_page *cp = spiffs_get_cache_page_hdr(fs, cache, i);
     if ((cache->cpage_use_map & (1<<i)) &&
         (cp->flags & SPIFFS_CACHE_FLAG_TYPE_WR) == 0 &&
-        cp->s.pix == pix ) {
+        cp->u.pix == pix ) {
       SPIFFS_CACHE_DBG("CACHE_GET: have cache page %i for %04x\n", i, pix);
       cp->last_access = cache->last_access;
       return cp;
@@ -39,16 +39,16 @@ static int32_t spiffs_cache_page_free(spiffs *fs, int ix, uint8_t write_back) {
         (cp->flags & SPIFFS_CACHE_FLAG_TYPE_WR) == 0 &&
         (cp->flags & SPIFFS_CACHE_FLAG_DIRTY)) {
       uint8_t *mem =  spiffs_get_cache_page(fs, cache, ix);
-      res = SPIFFS_HAL_WRITE(fs, SPIFFS_PAGE_TO_PADDR(fs, cp->s.pix), SPIFFS_CFG_LOG_PAGE_SZ(fs), mem);
+      res = SPIFFS_HAL_WRITE(fs, SPIFFS_PAGE_TO_PADDR(fs, cp->u.pix), SPIFFS_CFG_LOG_PAGE_SZ(fs), mem);
     }
 
     cp->flags = 0;
     cache->cpage_use_map &= ~(1 << ix);
 
     if (cp->flags & SPIFFS_CACHE_FLAG_TYPE_WR) {
-      SPIFFS_CACHE_DBG("CACHE_FREE: free cache page %i objid %04x\n", ix, cp->s.u.obj_id);
+      SPIFFS_CACHE_DBG("CACHE_FREE: free cache page %i objid %04x\n", ix, cp->u.s.obj_id);
     } else {
-      SPIFFS_CACHE_DBG("CACHE_FREE: free cache page %i pix %04x\n", ix, cp->pix);
+      SPIFFS_CACHE_DBG("CACHE_FREE: free cache page %i pix %04x\n", ix, cp->u.pix);
     }
   }
 
@@ -146,7 +146,7 @@ int32_t spiffs_phys_rd(
     cp = spiffs_cache_page_allocate(fs);
     if (cp) {
       cp->flags = SPIFFS_CACHE_FLAG_WRTHRU;
-      cp->s.pix = SPIFFS_PADDR_TO_PAGE(fs, addr);
+      cp->u.pix = SPIFFS_PADDR_TO_PAGE(fs, addr);
     }
     int32_t res2 = SPIFFS_HAL_READ(fs,
         addr - SPIFFS_PADDR_TO_PAGE_OFFSET(fs, addr),
@@ -218,7 +218,7 @@ spiffs_cache_page *spiffs_cache_page_get_by_fd(spiffs *fs, spiffs_fd *fd) {
     spiffs_cache_page *cp = spiffs_get_cache_page_hdr(fs, cache, i);
     if ((cache->cpage_use_map & (1<<i)) &&
         (cp->flags & SPIFFS_CACHE_FLAG_TYPE_WR) &&
-        cp->s.u.obj_id == fd->obj_id) {
+        cp->u.s.obj_id == fd->obj_id) {
       return cp;
     }
   }
@@ -239,7 +239,7 @@ spiffs_cache_page *spiffs_cache_page_allocate_by_fd(spiffs *fs, spiffs_fd *fd) {
   }
 
   cp->flags = SPIFFS_CACHE_FLAG_TYPE_WR;
-  cp->s.u.obj_id = fd->obj_id;
+  cp->u.s.obj_id = fd->obj_id;
   fd->cache_page = cp;
   return cp;
 }
@@ -257,7 +257,7 @@ void spiffs_cache_fd_release(spiffs *fs, spiffs_cache_page *cp) {
   }
   spiffs_cache_page_free(fs, cp->ix, 0);
 
-  cp->s.u.obj_id = 0;
+  cp->u.s.obj_id = 0;
 }
 
 #endif

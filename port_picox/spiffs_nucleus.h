@@ -381,9 +381,9 @@ typedef struct {
       uint32_t offset;
       // size of cache page
       uint16_t size;
-    } u;
+    } s;
 #endif
-  } s;
+  } u;
 } spiffs_cache_page;
 
 // cache struct
