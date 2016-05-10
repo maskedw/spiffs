@@ -255,10 +255,7 @@ int32_t spiffs_gc_find_candidate(
   int32_t *cand_scores = (int32_t *)(fs->work + max_candidates * sizeof(spiffs_block_ix));
 
    // align cand_scores on int32_t boundary
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
   cand_scores = (int32_t*)(((ptrdiff_t)cand_scores + sizeof(ptrdiff_t) - 1) & ~(sizeof(ptrdiff_t) - 1));
-#pragma GCC diagnostic pop
 
   *block_candidates = cand_blocks;
 
